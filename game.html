@@ -3,19 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile 3D Controls</title>
+    <title>game</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
 
-        .container {
-            perspective: 800px;
-            perspective-origin: 50% 50%;
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
+        #keyboard {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        .key {
+            width: 20%;
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
         }
 
         .box {
@@ -24,6 +34,7 @@
             transform-style: preserve-3d;
             transform-origin: center center;
             position: relative;
+            transition: transform 0.3s ease;
         }
 
         .face {
@@ -43,45 +54,31 @@
         .face:nth-child(4) { transform: rotateY(-90deg) translateZ(50vw); background-color: #3498db; border: 2px solid #2980b9; }
         .face:nth-child(5) { transform: rotateX(90deg) translateZ(50vh); background-color: #3498db; border: 2px solid #2980b9; }
         .face:nth-child(6) { transform: rotateX(-90deg) translateZ(50vh); background-color: #3498db; border: 2px solid #2980b9; }
-
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5em;
-        }
-
-        #hiddenInput {
-            position: absolute;
-            opacity: 0;
-            height: 0;
-            width: 0;
-        }
     </style>
 </head>
 <body>
-    <input id="hiddenInput" type="text" autofocus/>
-    <div id="controls">
-        Controls: W - Forward, S - Backward, A - Left, D - Right
+    <div id="keyboard">
+        <div class="key" onclick="pressKey('W')">W</div>
+        <div class="key" onclick="pressKey('A')">A</div>
+        <div class="key" onclick="pressKey('S')">S</div>
+        <div class="key" onclick="pressKey('D')">D</div>
     </div>
-    <div class="container">
-        <div class="box">
-            <div class="face" id="front"></div>
-            <div class="face" id="right"></div>
-            <div class="face" id="back"></div>
-            <div class="face" id="left"></div>
-            <div class="face" id="top"></div>
-            <div class="face" id="bottom"></div>
-        </div>
+
+    <div class="box">
+        <div class="face" id="front"></div>
+        <div class="face" id="right"></div>
+        <div class="face" id="back"></div>
+        <div class="face" id="left"></div>
+        <div class="face" id="top"></div>
+        <div class="face" id="bottom"></div>
     </div>
 
     <script>
         let positionX = 0;
         let positionY = 0;
 
-        window.addEventListener('keydown', function (event) {
-            switch (event.key.toLowerCase()) {
+        function pressKey(key) {
+            switch (key.toLowerCase()) {
                 case 'w':
                     positionY -= 10;
                     break;
@@ -97,7 +94,7 @@
             }
 
             updateBoxPosition();
-        });
+        }
 
         function updateBoxPosition() {
             const box = document.querySelector('.box');
