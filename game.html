@@ -12,6 +12,7 @@
         .random-text {
             position: absolute;
             color: red;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -25,12 +26,17 @@
             var textElement = document.createElement('div');
             textElement.className = 'random-text';
             textElement.textContent = 'Random Red Text';
-            
+
             // Set random position
             var maxX = window.innerWidth - 150; // Adjust the values as needed
             var maxY = window.innerHeight - 30;
             textElement.style.left = Math.floor(Math.random() * maxX) + 'px';
             textElement.style.top = Math.floor(Math.random() * maxY) + 'px';
+
+            // Add click event listener
+            textElement.addEventListener('click', function() {
+                alert('Text Clicked!');
+            });
 
             document.body.appendChild(textElement);
         }
