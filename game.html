@@ -18,23 +18,35 @@
       border: 2px solid #000;
       background: transparent;
     }
-
-    .face:nth-child(1) { transform: rotateY(0deg) translateZ(50px); background: blue; }
-    .face:nth-child(2) { transform: rotateY(90deg) translateZ(50px); background: red; }
-    .face:nth-child(3) { transform: rotateY(180deg) translateZ(50px); background: black; }
-    .face:nth-child(4) { transform: rotateY(-90deg) translateZ(50px); background: blue; }
-    .face:nth-child(5) { transform: rotateX(90deg) translateZ(50px); background: red; }
-    .face:nth-child(6) { transform: rotateX(-90deg) translateZ(50px); background: black; }
   </style>
+  <script>
+    function createCube(positionX, positionY, positionZ, color1, color2, color3, color4, color5, color6) {
+      const cube = document.createElement("div");
+      cube.classList.add("cube");
+      cube.style.transform = `translate3d(${positionX}px, ${positionY}px, ${positionZ}px) rotateX(45deg) rotateY(45deg)`;
+
+      const faces = [];
+      for (let i = 0; i < 6; i++) {
+        const face = document.createElement("div");
+        face.classList.add("face");
+        faces.push(face);
+        cube.appendChild(face);
+      }
+
+      faces[0].style.background = color1;
+      faces[1].style.background = color2;
+      faces[2].style.background = color3;
+      faces[3].style.background = color4;
+      faces[4].style.background = color5;
+      faces[5].style.background = color6;
+
+      document.body.appendChild(cube);
+    }
+  </script>
 </head>
 <body>
-  <div class="cube">
-    <div class="face"></div>
-    <div class="face"></div>
-    <div class="face"></div>
-    <div class="face"></div>
-    <div class="face"></div>
-    <div class="face"></div>
-  </div>
+  <script>
+    createCube(0, 0, 0, 'blue', 'red', 'black', 'blue', 'red', 'black');
+  </script>
 </body>
 </html>
