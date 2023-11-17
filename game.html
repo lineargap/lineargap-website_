@@ -51,9 +51,17 @@
             transform: translateX(-50%);
             font-size: 1.5em;
         }
+
+        #hiddenInput {
+            position: absolute;
+            opacity: 0;
+            height: 0;
+            width: 0;
+        }
     </style>
 </head>
 <body>
+    <input id="hiddenInput" type="text" autofocus/>
     <div id="controls">
         Controls: W - Forward, S - Backward, A - Left, D - Right
     </div>
