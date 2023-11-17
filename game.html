@@ -3,30 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile On-Screen Keyboard</title>
+    <title>Multiple Cubes Generation</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
 
-        #keyboard {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #333;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
+        .container {
+            perspective: 800px;
+            perspective-origin: 50% 50%;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
         }
 
-        .key {
-            color: white;
-            font-size: 1.5em;
-            cursor: pointer;
-        }
-
-        .box {
+        .scene {
             width: 100%;
             height: 100%;
             transform-style: preserve-3d;
@@ -35,68 +27,40 @@
             transition: transform 0.3s ease;
         }
 
-        .face {
+        .cube {
+            width: 20px;
+            height: 20px;
+            background-color: #3498db;
+            margin: 0 5px;
             position: absolute;
-            width: 100vw;
-            height: 100vh;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2em;
+            bottom: 0;
+            animation: moveCubes 5s linear infinite alternate;
         }
 
-        .face:nth-child(1) { transform: rotateY(0deg) translateZ(50vw); background-color: #3498db; border: 2px solid #2980b9; }
-        .face:nth-child(2) { transform: rotateY(90deg) translateZ(50vw); background-color: #3498db; border: 2px solid #2980b9; }
-        .face:nth-child(3) { transform: rotateY(180deg) translateZ(50vw); background-color: #3498db; border: 2px solid #2980b9; }
-        .face:nth-child(4) { transform: rotateY(-90deg) translateZ(50vw); background-color: #3498db; border: 2px solid #2980b9; }
-        .face:nth-child(5) { transform: rotateX(90deg) translateZ(50vh); background-color: #3498db; border: 2px solid #2980b9; }
-        .face:nth-child(6) { transform: rotateX(-90deg) translateZ(50vh); background-color: #3498db; border: 2px solid #2980b9; }
+        @keyframes moveCubes {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(50 * (20px + 5px)));
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="keyboard">
-        <div class="key" onclick="pressKey('W')">W</div>
-        <div class="key" onclick="pressKey('A')">A</div>
-        <div class="key" onclick="pressKey('S')">S</div>
-        <div class="key" onclick="pressKey('D')">D</div>
-    </div>
-
-    <div class="box">
-        <div class="face" id="front"></div>
-        <div class="face" id="right"></div>
-        <div class="face" id="back"></div>
-        <div class="face" id="left"></div>
-        <div class="face" id="top"></div>
-        <div class="face" id="bottom"></div>
+    <div class="container">
+        <div class="scene" id="scene"></div>
     </div>
 
     <script>
-        let positionX = 0;
-        let positionY = 0;
+        const scene = document.getElementById('scene');
 
-        function pressKey(key) {
-            switch (key.toLowerCase()) {
-                case 'w':
-                    positionY -= 10;
-                    break;
-                case 's':
-                    positionY += 10;
-                    break;
-                case 'a':
-                    positionX -= 10;
-                    break;
-                case 'd':
-                    positionX += 10;
-                    break;
-            }
-
-            updateBoxPosition();
-        }
-
-        function updateBoxPosition() {
-            const box = document.querySelector('.box');
-            box.style.transform = `translateX(${positionX}px) translateY(${positionY}px)`;
+        // Generate 50 cubes
+        for (let i = 0; i < 50; i++) {
+            const cube = document.createElement('div');
+            cube.classList.add('cube');
+            cube.style.transform = `translateX(${i * (20 + 5)}px)`;
+            scene.appendChild(cube);
         }
     </script>
 </body>
