@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Red Text</title>
+    <style>
+        body {
+            position: relative;
+        }
+
+        .random-text {
+            position: absolute;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            createRandomText();
+        };
+
+        function createRandomText() {
+            var textElement = document.createElement('div');
+            textElement.className = 'random-text';
+            textElement.textContent = 'Random Red Text';
+            
+            // Set random position
+            var maxX = window.innerWidth - 150; // Adjust the values as needed
+            var maxY = window.innerHeight - 30;
+            textElement.style.left = Math.floor(Math.random() * maxX) + 'px';
+            textElement.style.top = Math.floor(Math.random() * maxY) + 'px';
+
+            document.body.appendChild(textElement);
+        }
+    </script>
+</body>
+</html>
