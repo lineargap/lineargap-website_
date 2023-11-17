@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotating 3D Box</title>
+    <title>Mobile 3D Controls</title>
     <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
         .container {
             perspective: 800px;
             perspective-origin: 50% 50%;
-            width: 200px;
-            height: 200px;
-            margin: 100px auto;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
         }
 
         .box {
@@ -18,40 +23,80 @@
             height: 100%;
             transform-style: preserve-3d;
             transform-origin: center center;
-            animation: rotateAnimation 1s linear infinite;
+            position: relative;
         }
 
         .face {
             position: absolute;
-            width: 200px;
-            height: 200px;
+            width: 100vw;
+            height: 100vh;
             background-color: #3498db;
             border: 2px solid #2980b9;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
         }
 
-        .face:nth-child(1) { transform: rotateY(0deg) translateZ(100px); }
-        .face:nth-child(2) { transform: rotateY(90deg) translateZ(100px); }
-        .face:nth-child(3) { transform: rotateY(180deg) translateZ(100px); }
-        .face:nth-child(4) { transform: rotateY(-90deg) translateZ(100px); }
-        .face:nth-child(5) { transform: rotateX(90deg) translateZ(100px); }
-        .face:nth-child(6) { transform: rotateX(-90deg) translateZ(100px); }
+        .face:nth-child(1) { transform: rotateY(0deg) translateZ(50vw); }
+        .face:nth-child(2) { transform: rotateY(90deg) translateZ(50vw); }
+        .face:nth-child(3) { transform: rotateY(180deg) translateZ(50vw); }
+        .face:nth-child(4) { transform: rotateY(-90deg) translateZ(50vw); }
+        .face:nth-child(5) { transform: rotateX(90deg) translateZ(50vh); }
+        .face:nth-child(6) { transform: rotateX(-90deg) translateZ(50vh); }
 
-        @keyframes rotateAnimation {
-            from { transform: rotateY(0deg); }
-            to { transform: rotateY(360deg); }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
         }
     </style>
 </head>
 <body>
+    <div id="controls">
+        Controls: W - Forward, S - Backward, A - Left, D - Right
+    </div>
     <div class="container">
         <div class="box">
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
+            <div class="face" id="front">W</div>
+            <div class="face" id="right">D</div>
+            <div class="face" id="back">S</div>
+            <div class="face" id="left">A</div>
+            <div class="face" id="top">↑</div>
+            <div class="face" id="bottom">↓</div>
         </div>
     </div>
+
+    <script>
+        let positionX = 0;
+        let positionY = 0;
+
+        window.addEventListener('keydown', function (event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    positionY -= 10;
+                    break;
+                case 's':
+                    positionY += 10;
+                    break;
+                case 'a':
+                    positionX -= 10;
+                    break;
+                case 'd':
+                    positionX += 10;
+                    break;
+            }
+
+            updateBoxPosition();
+        });
+
+        function updateBoxPosition() {
+            const box = document.querySelector('.box');
+            box.style.transform = `translateX(${positionX}px) translateY(${positionY}px)`;
+        }
+    </script>
 </body>
 </html>
