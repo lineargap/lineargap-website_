@@ -3,52 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>game</title>
-    <style>
-        .container {
-            perspective: 800px;
-            perspective-origin: 50% 50%;
-            width: 200px;
-            height: 500px;
-            margin: 100px auto;
-        }
-
-        .box {
-            width: 250%;
-            height: 50%;
-            transform-style: preserve-3d;
-            transform-origin: center center;
-            animation: rotateAnimation 1s linear infinite;
-        }
-
-        .face {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background-color: #3498db;
-            border: 2px solid #2980b9;
-        }
-
-        .face:nth-child(1) { transform: rotateY(0deg) translateZ(100px); }
-        .face:nth-child(2) { transform: rotateY(90deg) translateZ(100px); }
-        .face:nth-child(3) { transform: rotateY(180deg) translateZ(100px); }
-        .face:nth-child(4) { transform: rotateY(-90deg) translateZ(100px); }
-        .face:nth-child(5) { transform: rotateX(90deg) translateZ(100px); }
-        .face:nth-child(6) { transform: rotateX(-90deg) translateZ(100px); }
-
-        
-    </style>
+    <title>3D Movement with Gamepad</title>
+    <script src="https://threejs.org/build/three.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="box">
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-            <div class="face"></div>
-        </div>
-    </div>
+    <h1>3D Movement with Gamepad</h1>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.z = 5;
+
+        window.addEventListener("gamepadconnected", (event) => {
+            console.log("Gamepad connected:", event.gamepad);
+            checkGamepadInput(event.gamepad.index);
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            console.log("Gamepad disconnected:", event.gamepad);
+        });
+
+        function checkGamepadInput(gamepadIndex) {
+            requestAnimationFrame(() => {
+                const gamepad = navigator.getGamepads()[gamepadIndex];
+                
+                if (gamepad) {
+                    // Adjust cube position based on gamepad input
+                    cube.position.x += gamepad.axes[0] * 0.1;
+                    cube.position.y += gamepad.axes[1] * 0.1;
+
+                    // Rotate cube based on gamepad input
+                    cube.rotation.x += gamepad.axes[3] * 0.1;
+                    cube.rotation.y += gamepad.axes[4] * 0.1;
+
+                    // Repeat the check
+                    checkGamepadInput(gamepadIndex);
+                }
+
+                renderer.render(scene, camera);
+            });
+        }
+    </script>
 </body>
-</html
+</html>
