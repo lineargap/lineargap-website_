@@ -9,7 +9,7 @@
             perspective: 800px;
             perspective-origin: 50% 50%;
             width: 200px;
-            height: 500px;
+            height: 200px;
             margin: 100px auto;
         }
 
@@ -20,7 +20,13 @@
             transform-origin: center center;
             animation: rotateAnimation 1s linear infinite;
         }
-
+        .box {
+            width: 400%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transform-origin: center left;
+            animation: rotateAnimation 1s linear infinite;
+        }
         .face {
             position: absolute;
             width: 200px;
