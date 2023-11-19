@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft-style Camera and Movement</title>
+    <title>FPS-style Controls with Gravity</title>
     <style>
         body { margin: 0; overflow: hidden; }
     </style>
@@ -17,28 +17,34 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const gridSpacing = 2;
-        const gridWidth = 5;
-        const gridHeight = 5;
+        const cubes = [];
+        const cubeSize = 2;
+        const groundSize = 20;
 
-        for (let i = 0; i < gridWidth; i++) {
-            for (let j = 0; j < gridHeight; j++) {
-                const geometry = new THREE.BoxGeometry();
+        // Create ground
+        for (let i = -groundSize / 2; i < groundSize / 2; i += cubeSize) {
+            for (let j = -groundSize / 2; j < groundSize / 2; j += cubeSize) {
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
                 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                 const cube = new THREE.Mesh(geometry, material);
-                cube.position.x = i * gridSpacing;
-                cube.position.y = j * gridSpacing;
+                cube.position.x = i;
+                cube.position.y = -2; // Slightly below the origin to serve as the ground
+                cube.position.z = j;
+                cubes.push(cube);
                 scene.add(cube);
             }
         }
 
         const player = {
-            position: new THREE.Vector3(0, 0, 0),
+            position: new THREE.Vector3(0, 5, 0),
             rotation: new THREE.Euler(0, 0, 0),
+            velocity: new THREE.Vector3(0, 0, 0),
+            isGrounded: false,
         };
 
         const moveSpeed = 0.1;
         const rotateSpeed = 0.02;
+        const gravity = 0.005;
 
         const gamepadState = {
             axes: [0, 0],
@@ -59,22 +65,34 @@
                 const gamepad = navigator.getGamepads()[gamepadIndex];
 
                 if (gamepad) {
-                    // Adjust player rotation based on left stick input
-                    player.rotation.y -= gamepad.axes[0] * rotateSpeed;
-                    player.rotation.x += gamepad.axes[1] * rotateSpeed;
+                    // Adjust player rotation based on right stick input
+                    player.rotation.y -= gamepad.axes[2] * rotateSpeed;
+                    player.rotation.x += gamepad.axes[3] * rotateSpeed;
 
                     // Calculate movement direction based on player rotation
                     const moveDirection = new THREE.Vector3(
                         -Math.sin(player.rotation.y),
-                        Math.sin(player.rotation.x),
+                        0,
                         -Math.cos(player.rotation.y)
                     );
 
-                    // Adjust player position based on buttons (Minecraft-style movement)
-                    if (gamepad.buttons[0].pressed) {
-                        player.position.addScaledVector(moveDirection, moveSpeed);
-                    } else if (gamepad.buttons[1].pressed) {
-                        player.position.addScaledVector(moveDirection, -moveSpeed);
+                    // Apply gravity
+                    if (!player.isGrounded) {
+                        player.velocity.y -= gravity;
+                    }
+
+                    // Update player position based on left stick input
+                    player.position.addScaledVector(moveDirection, gamepad.axes[1] * moveSpeed);
+
+                    // Check for collisions with ground
+                    player.isGrounded = false;
+                    for (const cube of cubes) {
+                        if (player.position.distanceTo(cube.position) < cubeSize / 2) {
+                            player.isGrounded = true;
+                            player.velocity.y = 0; // Stop falling when grounded
+                            player.position.y = cube.position.y + cubeSize / 2;
+                            break;
+                        }
                     }
 
                     // Update camera position and rotation based on player
