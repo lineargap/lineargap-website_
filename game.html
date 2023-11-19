@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Movement</title>
+    <title>Minecraft-style Camera and Movement</title>
     <style>
         body { margin: 0; overflow: hidden; }
     </style>
@@ -32,10 +32,17 @@
             }
         }
 
-        camera.position.z = 5;
+        const player = {
+            position: new THREE.Vector3(0, 0, 0),
+            rotation: new THREE.Euler(0, 0, 0),
+        };
+
+        const moveSpeed = 0.1;
+        const rotateSpeed = 0.02;
 
         const gamepadState = {
             axes: [0, 0],
+            buttons: [],
         };
 
         window.addEventListener("gamepadconnected", (event) => {
@@ -52,13 +59,27 @@
                 const gamepad = navigator.getGamepads()[gamepadIndex];
 
                 if (gamepad) {
-                    // Adjust camera position based on left stick input
-                    camera.position.x -= gamepad.axes[0] * 0.1;
-                    camera.position.y += gamepad.axes[1] * 0.1;
+                    // Adjust player rotation based on left stick input
+                    player.rotation.y -= gamepad.axes[0] * rotateSpeed;
+                    player.rotation.x += gamepad.axes[1] * rotateSpeed;
 
-                    // Adjust camera rotation based on right stick input
-                    camera.rotation.y -= gamepad.axes[2] * 0.05;
-                    camera.rotation.x += gamepad.axes[3] * 0.05;
+                    // Calculate movement direction based on player rotation
+                    const moveDirection = new THREE.Vector3(
+                        -Math.sin(player.rotation.y),
+                        Math.sin(player.rotation.x),
+                        -Math.cos(player.rotation.y)
+                    );
+
+                    // Adjust player position based on buttons (Minecraft-style movement)
+                    if (gamepad.buttons[0].pressed) {
+                        player.position.addScaledVector(moveDirection, moveSpeed);
+                    } else if (gamepad.buttons[1].pressed) {
+                        player.position.addScaledVector(moveDirection, -moveSpeed);
+                    }
+
+                    // Update camera position and rotation based on player
+                    camera.position.copy(player.position);
+                    camera.rotation.copy(player.rotation);
 
                     // Repeat the check
                     checkGamepadInput(gamepadIndex);
