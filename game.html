@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Movement with Gamepad</title>
+    <title>3D Movement</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+    </style>
     <script src="https://threejs.org/build/three.js"></script>
 </head>
 <body>
-    <h1>3D Movement with Gamepad</h1>
-
     <script>
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -16,12 +17,26 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+        const gridSpacing = 2;
+        const gridWidth = 5;
+        const gridHeight = 5;
+
+        for (let i = 0; i < gridWidth; i++) {
+            for (let j = 0; j < gridHeight; j++) {
+                const geometry = new THREE.BoxGeometry();
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.x = i * gridSpacing;
+                cube.position.y = j * gridSpacing;
+                scene.add(cube);
+            }
+        }
 
         camera.position.z = 5;
+
+        const gamepadState = {
+            axes: [0, 0],
+        };
 
         window.addEventListener("gamepadconnected", (event) => {
             console.log("Gamepad connected:", event.gamepad);
@@ -35,15 +50,15 @@
         function checkGamepadInput(gamepadIndex) {
             requestAnimationFrame(() => {
                 const gamepad = navigator.getGamepads()[gamepadIndex];
-                
-                if (gamepad) {
-                    // Adjust cube position based on gamepad input
-                    cube.position.x += gamepad.axes[0] * 0.1;
-                    cube.position.y += gamepad.axes[1] * 0.1;
 
-                    // Rotate cube based on gamepad input
-                    cube.rotation.x += gamepad.axes[3] * 0.1;
-                    cube.rotation.y += gamepad.axes[4] * 0.1;
+                if (gamepad) {
+                    // Adjust camera position based on left stick input
+                    camera.position.x -= gamepad.axes[0] * 0.1;
+                    camera.position.y += gamepad.axes[1] * 0.1;
+
+                    // Adjust camera rotation based on right stick input
+                    camera.rotation.y -= gamepad.axes[2] * 0.05;
+                    camera.rotation.x += gamepad.axes[3] * 0.05;
 
                     // Repeat the check
                     checkGamepadInput(gamepadIndex);
