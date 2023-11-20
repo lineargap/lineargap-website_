@@ -3,109 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FPS-style Controls with Gravity</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            border-left: 5px solid black; /* Border on the left side */
+        }
+
+        .button-container {
+            position: absolute;
+            bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none; /* Disable text selection */
+        }
     </style>
-    <script src="https://threejs.org/build/three.js"></script>
+    <title>2D Game with Gamepad</title>
 </head>
 <body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="button-container">
+        <button id="btnLeft">L</button>
+        <button id="btnRight">R</button>
+        <button id="btnJump">Jump</button>
+    </div>
+
     <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const playerColor = 'blue';
+        const enemyColor = 'red';
+        const floorColor = 'green';
 
-        const cubes = [];
-        const cubeSize = 2;
-        const groundSize = 20;
+        let player = {
+            x: 50,
+            y: 0,
+            width: 20,
+            height: 20,
+            velocityY: 0,
+            isJumping: false,
+            isRunningLeft: false,
+            isRunningRight: false,
+        };
 
-        // Create ground
-        for (let i = -groundSize / 2; i < groundSize / 2; i += cubeSize) {
-            for (let j = -groundSize / 2; j < groundSize / 2; j += cubeSize) {
-                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                const cube = new THREE.Mesh(geometry, material);
-                cube.position.x = i;
-                cube.position.y = -2; // Slightly below the origin to serve as the ground
-                cube.position.z = j;
-                cubes.push(cube);
-                scene.add(cube);
+        let enemies = [];
+        let enemySpeed = 3;
+        let enemyCounter = 0;
+        let score = 0;
+        let bestScore = 0;
+
+        // Button elements
+        const btnLeft = document.getElementById('btnLeft');
+        const btnJump = document.getElementById('btnJump');
+        const btnRight = document.getElementById('btnRight');
+
+        // Add event listeners for buttons
+        btnLeft.addEventListener('mousedown', () => { player.isRunningLeft = true; });
+        btnLeft.addEventListener('mouseup', () => { player.isRunningLeft = false; });
+        btnLeft.addEventListener('touchstart', () => { player.isRunningLeft = true; });
+        btnLeft.addEventListener('touchend', () => { player.isRunningLeft = false; });
+
+        btnJump.addEventListener('mousedown', () => { jump(); });
+        btnJump.addEventListener('touchstart', () => { jump(); });
+
+        btnRight.addEventListener('mousedown', () => { player.isRunningRight = true; });
+        btnRight.addEventListener('mouseup', () => { player.isRunningRight = false; });
+        btnRight.addEventListener('touchstart', () => { player.isRunningRight = true; });
+        btnRight.addEventListener('touchend', () => { player.isRunningRight = false; });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Add gamepad support
+            window.addEventListener('gamepadconnected', (event) => {
+                gamepad = event.gamepad;
+            });
+
+            // Spawn a new enemy every 4 seconds
+            setInterval(addEnemy, 4000);
+
+            // Update the score every second
+            setInterval(updateScore, 1000);
+
+            animate();
+        });
+
+        function animate() {
+            // Apply gravity
+            player.velocityY -= 0.5;
+            player.y += player.velocityY;
+
+            // Move player to another place when going off the screen on the right side
+            if (player.x > canvas.width) {
+                player.x = 0;
+            }
+
+            // Move player left or right
+            if (player.isRunningLeft) {
+                player.x -= 5;
+            } else if (player.isRunningRight) {
+                player.x += 5;
+            }
+
+            // Move enemy towards player
+            for (let i = 0; i < enemies.length; i++) {
+                enemies[i].x -= enemySpeed * enemies[i].direction;
+            }
+
+            // Change direction if enemies reach edges
+            for (let i = 0; i < enemies.length; i++) {
+                if (
+                    enemies[i].x + enemies[i].width > canvas.width ||
+                    enemies[i].x < 0
+                ) {
+                    enemies[i].direction *= -1;
+                }
+            }
+
+            // Restart game if any enemy touches player
+            for (let i = 0; i < enemies.length; i++) {
+                if (
+                    enemies[i].x < player.x + player.width &&
+                    enemies[i].x + enemies[i].width > player.x &&
+                    enemies[i].y < player.y + player.height &&
+                    enemies[i].y + enemies[i].height > player.y
+                ) {
+                    restartGame();
+                }
+            }
+
+            // Ground collision
+            if (player.y < 0) {
+                player.y = 0;
+                player.velocityY = 0;
+                player.isJumping = false;
+            }
+
+            // Update canvas
+            drawScene();
+
+            requestAnimationFrame(animate);
+        }
+
+        function restartGame() {
+            player.x = 50;
+            player.y = 0;
+            enemies = [];
+            enemyCounter = 0;
+            score = 0;
+        }
+
+        function updateScore() {
+            score++;
+            if (score > bestScore) {
+                bestScore = score;
             }
         }
 
-        const player = {
-            position: new THREE.Vector3(0, 5, 0),
-            rotation: new THREE.Euler(0, 0, 0),
-            velocity: new THREE.Vector3(0, 0, 0),
-            isGrounded: false,
-        };
+        function jump() {
+            if (!player.isJumping) {
+                player.velocityY = 10;
+                player.isJumping = true;
+            }
+        }
 
-        const moveSpeed = 0.1;
-        const rotateSpeed = 0.02;
-        const gravity = 0.005;
+        function addEnemy() {
+            let newEnemy = {
+                x: canvas.width - 30,
+                y: Math.random() * (canvas.height / 2 - 20),
+                width: 20,
+                height: 20,
+                direction: -1,
+            };
 
-        const gamepadState = {
-            axes: [0, 0],
-            buttons: [],
-        };
+            enemies.push(newEnemy);
+            enemyCounter++;
+            enemySpeed += 0.5; // Increase enemy speed with each new enemy
+        }
 
-        window.addEventListener("gamepadconnected", (event) => {
-            console.log("Gamepad connected:", event.gamepad);
-            checkGamepadInput(event.gamepad.index);
-        });
+        function drawScene() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        window.addEventListener("gamepaddisconnected", (event) => {
-            console.log("Gamepad disconnected:", event.gamepad);
-        });
+            // Draw floor
+            ctx.fillStyle = floorColor;
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
 
-        function checkGamepadInput(gamepadIndex) {
-            requestAnimationFrame(() => {
-                const gamepad = navigator.getGamepads()[gamepadIndex];
+            // Draw player
+            ctx.fillStyle = playerColor;
+            ctx.fillRect(player.x, canvas.height / 2 - player.y, player.width, player.height);
 
-                if (gamepad) {
-                    // Adjust player rotation based on right stick input
-                    player.rotation.y -= gamepad.axes[2] * rotateSpeed;
-                    player.rotation.x += gamepad.axes[3] * rotateSpeed;
+            // Draw enemies
+            for (let i = 0; i < enemies.length; i++) {
+                ctx.fillStyle = enemyColor;
+                ctx.fillRect(enemies[i].x, canvas.height / 2 - enemies[i].y, enemies[i].width, enemies[i].height);
+            }
 
-                    // Calculate movement direction based on player rotation
-                    const moveDirection = new THREE.Vector3(
-                        -Math.sin(player.rotation.y),
-                        0,
-                        -Math.cos(player.rotation.y)
-                    );
+            // Display enemy counter
+            ctx.fillStyle = 'black';
+            ctx.font = '16px Arial';
+            ctx.fillText('Score: ' + score, 10, 20);
+            ctx.fillText('Best Score: ' + bestScore, 10, 40);
+        }
 
-                    // Apply gravity
-                    if (!player.isGrounded) {
-                        player.velocity.y -= gravity;
-                    }
+        function handleGamepadInput() {
+            const gamepad = navigator.getGamepads()[0];
 
-                    // Update player position based on left stick input
-                    player.position.addScaledVector(moveDirection, gamepad.axes[1] * moveSpeed);
-
-                    // Check for collisions with ground
-                    player.isGrounded = false;
-                    for (const cube of cubes) {
-                        if (player.position.distanceTo(cube.position) < cubeSize / 2) {
-                            player.isGrounded = true;
-                            player.velocity.y = 0; // Stop falling when grounded
-                            player.position.y = cube.position.y + cubeSize / 2;
-                            break;
-                        }
-                    }
-
-                    // Update camera position and rotation based on player
-                    camera.position.copy(player.position);
-                    camera.rotation.copy(player.rotation);
-
-                    // Repeat the check
-                    checkGamepadInput(gamepadIndex);
+            if (gamepad) {
+                // Move right
+                if (gamepad.axes[0] > 0.5) {
+                    player.x += 5;
                 }
 
-                renderer.render(scene, camera);
-            });
+                // Move left
+                if (gamepad.axes[0] < -0.5) {
+                    player.x -= 5;
+                }
+
+                // Jump
+                if (gamepad.buttons[0].pressed && !player.isJumping) {
+                    jump();
+                }
+            }
         }
+
+        function update() {
+            handleGamepadInput();
+        }
+
+        function gameLoop() {
+            update();
+            drawScene();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('gamepadconnected', (event) => {
+            gameLoop();
+        });
     </script>
 </body>
 </html>
